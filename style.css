@@ -8,11 +8,11 @@ body {
 }
 
 .app {
-  background: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.7);
   backdrop-filter: blur(10px);
   padding: 20px;
   border-radius: 16px;
-  width: 380px;
+  width: 400px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
@@ -38,8 +38,9 @@ button {
   padding: 8px;
   border-radius: 8px;
   border: none;
-  background: #c9a227;
+  background: linear-gradient(135deg,#d4af37,#c9a227);
   color: white;
+  cursor: pointer;
 }
 
 .stats {
@@ -47,32 +48,40 @@ button {
   margin: 15px 0;
 }
 
-#total {
+#totalDebt {
   font-size: 22px;
   font-weight: bold;
 }
 
-#free {
+#totalFree {
   font-size: 14px;
   opacity: 0.7;
 }
 
-canvas {
-  display: block;
-  margin: 10px auto;
+.card {
+  background: rgba(255,255,255,0.5);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
 }
 
-li {
+.card-header {
   display: flex;
   justify-content: space-between;
-  padding: 10px;
-  margin-bottom: 5px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.5);
+  align-items: center;
 }
 
-.small-btn {
-  margin-left: 5px;
+.progress {
+  height: 12px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.1);
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 6px;
 }
 
 .modal {
