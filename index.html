@@ -3,23 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Трекер кредитных карт</title>
+<title>Credit Tracker</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
-  <h1>Трекер кредиток</h1>
+  <h1>Credit Tracker</h1>
 
   <div class="input-group">
-    <input id="cardName" placeholder="Название карты" />
+    <input id="cardName" placeholder="Карта" />
     <input id="amount" type="number" placeholder="Долг" />
-    <input id="limit" type="number" placeholder="Остаток лимита" />
-    <input id="days" type="number" placeholder="Дней осталось" />
+    <input id="limit" type="number" placeholder="Лимит" />
+    <input id="days" type="number" placeholder="Дни" />
     <button onclick="addDebt()">+</button>
   </div>
 
-  <div id="total">Общий долг: 0 ₽</div>
+  <div class="stats">
+    <div id="total">Долг: 0 ₽</div>
+    <div id="free">Остаток: 0 ₽</div>
+  </div>
 
   <canvas id="chart" width="300" height="300"></canvas>
 
