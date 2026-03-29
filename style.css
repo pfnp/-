@@ -1,78 +1,81 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f5f5f5;
+  background: linear-gradient(135deg, #f4ecd8, #e6dcc5);
   display: flex;
   justify-content: center;
-  margin-top: 30px;
+  margin-top: 40px;
+  color: #2b2b2b;
 }
 
 .app {
-  background: white;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(10px);
   padding: 20px;
-  border-radius: 12px;
-  width: 400px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  width: 380px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 h1 {
-  font-size: 20px;
-  margin-bottom: 15px;
   text-align: center;
+  font-weight: 500;
+  margin-bottom: 15px;
 }
 
 .input-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 15px;
+  gap: 6px;
 }
 
 input {
   flex: 1;
   padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.7);
 }
 
 button {
   padding: 8px 10px;
   border: none;
-  border-radius: 6px;
-  background: black;
+  border-radius: 8px;
+  background: linear-gradient(135deg,#d4af37,#c9a227);
   color: white;
   cursor: pointer;
 }
 
-#total {
+.stats {
   text-align: center;
-  margin: 10px 0;
-  font-weight: bold;
+  margin: 15px 0;
+}
+
+#total {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+#free {
+  font-size: 14px;
+  opacity: 0.7;
 }
 
 canvas {
   display: block;
-  margin: 0 auto 15px;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
+  margin: 10px auto 15px;
 }
 
 li {
   display: flex;
   justify-content: space-between;
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-}
-
-.actions {
-  display: flex;
-  gap: 5px;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.5);
 }
 
 .small-btn {
-  font-size: 12px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 6px;
   padding: 4px 6px;
-  background: #eee;
 }
