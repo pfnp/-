@@ -12,10 +12,10 @@
   <h1>Credit Tracker</h1>
 
   <div class="input-group">
-    <input id="cardName" placeholder="Карта" />
-    <input id="amount" type="number" placeholder="Долг" />
-    <input id="limit" type="number" placeholder="Лимит" />
-    <input id="days" type="number" placeholder="Дни" />
+    <input id="cardName" placeholder="Карта">
+    <input id="amount" type="number" placeholder="Долг">
+    <input id="limit" type="number" placeholder="Лимит">
+    <input id="days" type="number" placeholder="Дни">
     <button onclick="addDebt()">+</button>
   </div>
 
@@ -29,6 +29,17 @@
   <ul id="debtList"></ul>
 </div>
 
-<script src="script.js" defer></script>
+<!-- модальное окно -->
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Редактировать</h3>
+    <input id="editAmount" type="number" placeholder="Долг">
+    <input id="editLimit" type="number" placeholder="Лимит">
+    <input id="editDays" type="number" placeholder="Дни">
+    <button onclick="saveEdit()">Сохранить</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
