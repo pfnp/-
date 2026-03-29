@@ -1,6 +1,13 @@
 let debts = JSON.parse(localStorage.getItem("debts")) || [];
 
-const colors = ["#4cafef","#ff9800","#f44336","#8bc34a","#9c27b0"];
+// фиксированные цвета по названию карты
+function getColor(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return `hsl(${hash % 360},70%,60%)`;
+}
 
 function save() {
   localStorage.setItem("debts", JSON.stringify(debts));
@@ -13,53 +20,86 @@ function render() {
 
   list.innerHTML = "";
 
-  debts.sort((a,b) => a.days - b.days);
+  debts.sort((a,b)=>a.days-b.days);
 
   let total = 0;
   let free = 0;
 
-  debts.forEach((debt, index) => {
-    total += debt.amount;
-    free += debt.limit;
+  debts.forEach((d,i)=>{
+    total += d.amount;
+    free += d.limit;
 
-    let color = "#4caf50";
-    if (debt.days <= 20 && debt.days >= 7) color = "#ff9800";
-    if (debt.days < 7) color = "#f44336";
+    let color = "green";
+    if (d.days <= 20 && d.days >= 7) color = "orange";
+    if (d.days < 7) color = "red";
 
     const li = document.createElement("li");
 
     const info = document.createElement("span");
     info.innerHTML = `
-      <strong>${debt.card}</strong><br>
-      ${debt.amount}₽ | лимит: ${debt.limit} | ${debt.days} дн.
+      <strong>${d.card}</strong><br>
+      ${d.amount}₽ | ${d.days} дн.
     `;
     info.style.color = color;
 
     const actions = document.createElement("div");
 
-    const editBtn = document.createElement("button");
-    editBtn.textContent = "✎";
-    editBtn.className = "small-btn";
-    editBtn.onclick = () => editDebt(index);
+    const edit = document.createElement("button");
+    edit.textContent = "✎";
+    edit.className = "small-btn";
+    edit.onclick = ()=>editDebt(i);
 
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "✕";
-    delBtn.className = "small-btn";
-    delBtn.onclick = () => deleteDebt(index);
+    const del = document.createElement("button");
+    del.textContent = "✕";
+    del.className = "small-btn";
+    del.onclick = ()=>deleteDebt(i);
 
-    actions.appendChild(editBtn);
-    actions.appendChild(delBtn);
+    actions.append(edit, del);
 
-    li.appendChild(info);
-    li.appendChild(actions);
-
+    li.append(info, actions);
     list.appendChild(li);
   });
 
-  totalEl.textContent = `Долг: ${total} ₽`;
-  freeEl.textContent = `Остаток: ${free} ₽`;
+  totalEl.textContent = `${total} ₽`;
+  freeEl.textContent = `Остаток по кредиткам: ${free} ₽`;
 
   drawChart();
+}
+
+function drawChart() {
+  const canvas = document.getElementById("chart");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0,0,320,320);
+
+  const total = debts.reduce((s,d)=>s+d.amount,0);
+  if (!total) return;
+
+  let start = 0;
+
+  debts.forEach(d=>{
+    const slice = d.amount/total * Math.PI*2;
+    const color = getColor(d.card);
+
+    ctx.beginPath();
+    ctx.arc(160,160,110,start,start+slice);
+    ctx.arc(160,160,70,start+slice,start,true);
+    ctx.closePath();
+
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // подпись
+    const mid = start + slice/2;
+    const x = 160 + Math.cos(mid)*90;
+    const y = 160 + Math.sin(mid)*90;
+
+    ctx.fillStyle = "#000";
+    ctx.font = "10px sans-serif";
+    ctx.fillText(d.card, x-10, y);
+
+    start += slice;
+  });
 }
 
 function addDebt() {
@@ -70,62 +110,30 @@ function addDebt() {
 
   if (!card || !amount || !limit || !days) return;
 
-  debts.push({ card, amount, limit, days });
-
+  debts.push({card,amount,limit,days});
   clearInputs();
   save();
   render();
 }
 
-function editDebt(index) {
-  const d = debts[index];
+function editDebt(i){
+  const d = debts[i];
 
-  const newAmount = prompt("Новый долг", d.amount);
-  const newLimit = prompt("Новый лимит", d.limit);
-  const newDays = prompt("Новые дни", d.days);
+  const amount = prompt("Долг", d.amount);
+  const limit = prompt("Лимит", d.limit);
+  const days = prompt("Дни", d.days);
 
-  if (newAmount && newLimit && newDays) {
-    debts[index] = {
-      ...d,
-      amount: +newAmount,
-      limit: +newLimit,
-      days: +newDays
-    };
+  if(amount && limit && days){
+    debts[i] = {...d, amount:+amount, limit:+limit, days:+days};
     save();
     render();
   }
 }
 
-function deleteDebt(index) {
-  debts.splice(index, 1);
+function deleteDebt(i){
+  debts.splice(i,1);
   save();
   render();
-}
-
-function drawChart() {
-  const canvas = document.getElementById("chart");
-  const ctx = canvas.getContext("2d");
-
-  ctx.clearRect(0,0,300,300);
-
-  const total = debts.reduce((s,d)=>s+d.amount,0);
-  if (!total) return;
-
-  let start = 0;
-
-  debts.forEach((d,i)=>{
-    const slice = d.amount/total * Math.PI*2;
-
-    ctx.beginPath();
-    ctx.moveTo(150,150);
-    ctx.arc(150,150,100,start,start+slice);
-    ctx.closePath();
-
-    ctx.fillStyle = colors[i % colors.length];
-    ctx.fill();
-
-    start += slice;
-  });
 }
 
 function clearInputs(){
