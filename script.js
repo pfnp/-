@@ -1,137 +1,37 @@
-let debts = JSON.parse(localStorage.getItem("debts")) || [];
+let cards = JSON.parse(localStorage.getItem("cards")) || [];
 let currentEdit = null;
 
-function getColor(name){
-  let hash=0;
-  for(let i=0;i<name.length;i++){
-    hash=name.charCodeAt(i)+((hash<<5)-hash);
-  }
-  return `hsl(${hash%360},70%,60%)`;
-}
+const cardName = document.getElementById("cardName");
+const amountInput = document.getElementById("amount");
+const limitInput = document.getElementById("limit");
+const dueDateInput = document.getElementById("dueDate");
+
+const editAmount = document.getElementById("editAmount");
+const editLimit = document.getElementById("editLimit");
+const editDueDate = document.getElementById("editDueDate");
+const modal = document.getElementById("modal");
 
 function save(){
-  localStorage.setItem("debts", JSON.stringify(debts));
+  localStorage.setItem("cards", JSON.stringify(cards));
 }
 
-function render(){
-  const list=document.getElementById("debtList");
-  const totalEl=document.getElementById("total");
-  const freeEl=document.getElementById("free");
-
-  list.innerHTML="";
-
-  debts.sort((a,b)=>a.days-b.days);
-
-  let total=0;
-  let free=0;
-
-  debts.forEach((d,i)=>{
-    total+=d.amount;
-    free+=d.limit;
-
-    let color="green";
-    if(d.days<=20 && d.days>=7) color="orange";
-    if(d.days<7) color="red";
-
-    const li=document.createElement("li");
-
-    const info=document.createElement("span");
-    info.innerHTML=`<strong>${d.card}</strong><br>${d.amount}₽ | ${d.days} дн.`;
-    info.style.color=color;
-
-    const actions=document.createElement("div");
-
-    const edit=document.createElement("button");
-    edit.textContent="✎";
-    edit.onclick=()=>editDebt(i);
-
-    const del=document.createElement("button");
-    del.textContent="✕";
-    del.onclick=()=>deleteDebt(i);
-
-    actions.append(edit,del);
-    li.append(info,actions);
-    list.appendChild(li);
-  });
-
-  totalEl.textContent=`${total} ₽`;
-  freeEl.textContent=`Остаток по кредиткам: ${free} ₽`;
-
-  drawChart();
+function calcDaysLeft(date){
+  const today = new Date();
+  const due = new Date(date);
+  const diff = Math.ceil((due-today)/(1000*60*60*24));
+  return diff;
 }
 
-function drawChart(){
-  const canvas=document.getElementById("chart");
-  const ctx=canvas.getContext("2d");
+function addCard(){
+  const name = cardName.value.trim();
+  const debt = +amountInput.value;
+  const limit = +limitInput.value;
+  const dueDate = dueDateInput.value;
 
-  ctx.clearRect(0,0,320,320);
+  if(!name||!debt||!limit||!dueDate) return;
 
-  const total=debts.reduce((s,d)=>s+d.amount,0);
-  if(!total) return;
-
-  let start=-Math.PI/2;
-
-  debts.forEach(d=>{
-    const slice=d.amount/total*Math.PI*2;
-    const color=getColor(d.card);
-
-    ctx.beginPath();
-    ctx.arc(160,160,110,start,start+slice);
-    ctx.arc(160,160,70,start+slice,start,true);
-    ctx.closePath();
-
-    ctx.fillStyle=color;
-    ctx.fill();
-
-    start+=slice;
-  });
-
-  ctx.fillStyle="#2b2b2b";
-  ctx.font="bold 16px sans-serif";
-  ctx.textAlign="center";
-  ctx.fillText(`${total} ₽`,160,160);
-}
-
-function addDebt(){
-  const card=cardName.value.trim();
-  const amount=+amountInput.value;
-  const limit=+limitInput.value;
-  const days=+daysInput.value;
-
-  if(!card||!amount||!limit||!days) return;
-
-  debts.push({card,amount,limit,days});
+  cards.push({name,debt,limit,dueDate});
   clearInputs();
-  save();
-  render();
-}
-
-function editDebt(i){
-  currentEdit=i;
-  const d=debts[i];
-
-  editAmount.value=d.amount;
-  editLimit.value=d.limit;
-  editDays.value=d.days;
-
-  modal.classList.remove("hidden");
-}
-
-function saveEdit(){
-  const d=debts[currentEdit];
-
-  d.amount=+editAmount.value;
-  d.limit=+editLimit.value;
-  d.days=+editDays.value;
-
-  modal.classList.add("hidden");
-
-  save();
-  render();
-}
-
-function deleteDebt(i){
-  debts.splice(i,1);
   save();
   render();
 }
@@ -140,27 +40,104 @@ function clearInputs(){
   cardName.value="";
   amountInput.value="";
   limitInput.value="";
-  daysInput.value="";
+  dueDateInput.value="";
 }
 
-// 🔔 Уведомления
+function editCard(i){
+  currentEdit=i;
+  const c = cards[i];
+  editAmount.value=c.debt;
+  editLimit.value=c.limit;
+  editDueDate.value=c.dueDate;
+  modal.classList.remove("hidden");
+}
+
+function saveEdit(){
+  const c = cards[currentEdit];
+  c.debt = +editAmount.value;
+  c.limit = +editLimit.value;
+  c.dueDate = editDueDate.value;
+  modal.classList.add("hidden");
+  save();
+  render();
+}
+
+function markPaid(i){
+  cards[i].debt = 0;
+  save();
+  render();
+}
+
+function deleteCard(i){
+  cards.splice(i,1);
+  save();
+  render();
+}
+
+function getColor(days){
+  if(days>21) return "green";
+  if(days>=7) return "orange";
+  if(days>0) return "red";
+  return "black";
+}
+
+function render(){
+  const list = document.getElementById("cardList");
+  list.innerHTML="";
+  let totalDebt=0, totalLimit=0;
+
+  cards.forEach((c,i)=>{
+    const daysLeft = calcDaysLeft(c.dueDate);
+    totalDebt += c.debt;
+    totalLimit += c.limit;
+
+    const cardDiv = document.createElement("div");
+    cardDiv.className="card";
+
+    const header = document.createElement("div");
+    header.className="card-header";
+
+    header.innerHTML = `<strong>${c.name}</strong> | ${daysLeft} дн. | ${c.debt} ₽`;
+
+    const btns = document.createElement("div");
+    btns.innerHTML = `<button onclick="editCard(${i})">✎</button>
+                      <button onclick="markPaid(${i})">✔</button>
+                      <button onclick="deleteCard(${i})">✕</button>`;
+
+    header.appendChild(btns);
+    cardDiv.appendChild(header);
+
+    // прогресс бар
+    const prog = document.createElement("div");
+    prog.className="progress";
+    const fill = document.createElement("div");
+    fill.className="progress-fill";
+    fill.style.width = `${Math.min(c.debt/c.limit*100,100)}%`;
+    fill.style.background = getColor(daysLeft);
+    prog.appendChild(fill);
+
+    cardDiv.appendChild(prog);
+    list.appendChild(cardDiv);
+  });
+
+  document.getElementById("totalDebt").textContent=`Общий долг: ${totalDebt} ₽`;
+  document.getElementById("totalFree").textContent=`Остаток по кредиткам: ${totalLimit-totalDebt} ₽`;
+}
+
+// уведомления
 function requestNotificationPermission(){
-  if(Notification.permission!=="granted"){
-    Notification.requestPermission();
-  }
+  if(Notification.permission!=="granted") Notification.requestPermission();
 }
 
 function checkNotifications(){
-  const now=new Date();
-  const hours=now.getHours();
-  const minutes=now.getMinutes();
-
+  const now = new Date();
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
   if(hours===16 && minutes===0){
-    debts.forEach(d=>{
-      if(d.days<7){
-        new Notification(`Погаси кредитку: ${d.card}`,{
-          body:`Осталось ${d.days} дней`
-        });
+    cards.forEach(c=>{
+      const days = calcDaysLeft(c.dueDate);
+      if(days<=7 && days>0){
+        new Notification(`Погаси кредитку: ${c.name}`, {body:`Осталось ${days} дней`});
       }
     });
   }
@@ -169,16 +146,15 @@ function checkNotifications(){
 // проверка каждую минуту
 setInterval(checkNotifications,60000);
 
+// пересчёт дней в 00:00
+setInterval(render,60000);
+
 requestNotificationPermission();
 
-const cardName=document.getElementById("cardName");
-const amountInput=document.getElementById("amount");
-const limitInput=document.getElementById("limit");
-const daysInput=document.getElementById("days");
-
-["cardName","amount","limit","days"].forEach(id=>{
-  document.getElementById(id).addEventListener("keydown",e=>{
-    if(e.key==="Enter") addDebt();
+// Enter для добавления
+[cardName, amountInput, limitInput, dueDateInput].forEach(el=>{
+  el.addEventListener("keydown", e=>{
+    if(e.key==="Enter") addCard();
   });
 });
 
