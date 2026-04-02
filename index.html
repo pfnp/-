@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Финансы</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icon.png">
+
+<style>
+body {
+  margin: 0;
+  background: #111;
+  color: white;
+  font-family: -apple-system;
+}
+
+.header {
+  padding: 20px;
+  font-size: 24px;
+}
+
+.balance {
+  padding: 0 20px;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.add-btn {
+  margin: 20px;
+  padding: 15px;
+  background: yellow;
+  color: black;
+  text-align: center;
+  border-radius: 12px;
+}
+
+.list {
+  padding: 20px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: 10px;
+  background: #1a1a1a;
+  position: relative;
+  z-index: 1;
+  transition: 0.2s;
+}
+
+.wrapper {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.delete {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: #ff3b30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.income {
+  color: #4cd964;
+}
+
+.expense {
+  color: #ff3b30;
+}
+
+.modal-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+}
+
+.modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #222;
+  padding: 20px;
+  border-radius: 20px 20px 0 0;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: none;
+}
+
+.save {
+  background: yellow;
+  padding: 15px;
+  text-align: center;
+  border-radius: 10px;
+  color: black;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Финансы</div>
+<div class="balance" id="balance">0 ₽</div>
+
+<div class="add-btn" onclick="openModal()">Добавить</div>
+
+<div class="list" id="list"></div>
+
+<div class="modal-bg" id="modalBg" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <input id="name" placeholder="Название">
+    <input id="amount" placeholder="Сумма (+ доход / - расход)">
+    <div class="save" onclick="save()">Сохранить</div>
+  </div>
+</div>
+
+<script>
+let transactions = JSON.parse(localStorage.getItem('tx')) || [];
+
+function render() {
+  const list = document.getElementById('list');
+  const balance = document.getElementById('balance');
+
+  list.innerHTML = '';
+  let total = 0;
+
+  transactions.forEach((t, i) => {
+    total += t.amount;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'wrapper';
+
+    const del = document.createElement('div');
+    del.className = 'delete';
+    del.innerText = 'Удалить';
+    del.onclick = () => deleteItem(i);
+
+    const div = document.createElement('div');
+    div.className = 'item';
+
+    const colorClass = t.amount > 0 ? 'income' : 'expense';
+
+    div.innerHTML = `
+      <span>${t.name}</span>
+      <span class="${colorClass}">${t.amount}</span>
+    `;
+
+    let startX = 0;
+    let currentX = 0;
+
+    div.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+    });
+
+    div.addEventListener('touchmove', e => {
+      currentX = e.touches[0].clientX;
+      let diff = currentX - startX;
+
+      if (diff < 0) {
+        div.style.transform = `translateX(${diff}px)`;
+      }
+    });
+
+    div.addEventListener('touchend', () => {
+      let diff = currentX - startX;
+
+      if (diff < -80) {
+        div.style.transform = `translateX(-80px)`;
+      } else {
+        div.style.transform = `translateX(0px)`;
+      }
+    });
+
+    wrapper.appendChild(del);
+    wrapper.appendChild(div);
+    list.appendChild(wrapper);
+  });
+
+  balance.innerText = total + ' ₽';
+}
+
+function openModal() {
+  document.getElementById('modalBg').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('modalBg').style.display = 'none';
+}
+
+function save() {
+  const name = document.getElementById('name').value;
+  const amount = parseInt(document.getElementById('amount').value);
+
+  if (!name || !amount) return;
+
+  transactions.push({ name, amount });
+
+  localStorage.setItem('tx', JSON.stringify(transactions));
+
+  document.getElementById('name').value = '';
+  document.getElementById('amount').value = '';
+
+  closeModal();
+  render();
+}
+
+function deleteItem(index) {
+  transactions.splice(index, 1);
+  localStorage.setItem('tx', JSON.stringify(transactions));
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
