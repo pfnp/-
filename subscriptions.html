@@ -12,6 +12,9 @@
 <body>
 
 <div class="header">Подписки</div>
+
+<div class="balance" id="totalSubs">Всего: 0 ₽</div>
+
 <div class="add-btn" onclick="openModal()">Добавить подписку</div>
 <div class="list" id="subsList"></div>
 
@@ -20,54 +23,81 @@
     <input id="subsName" placeholder="Название подписки">
     <input type="date" id="subsDate">
     <input id="subsAmount" placeholder="Сумма">
-    <div class="save" onclick="saveSubscription()">Сохранить</div>
+    <div class="save" onclick="saveSubs()">Сохранить</div>
   </div>
 </div>
 
 <div class="tabbar">
-  <a class="tab" href="index.html">Операции</a>
+  <a class="tab" href="index.html">Финансы</a>
   <a class="tab active" href="subscriptions.html">Подписки</a>
   <a class="tab" href="cards.html">Карты</a>
 </div>
 
 <script>
-let subscriptions = JSON.parse(localStorage.getItem('subs'))||[];
+let subscriptions = JSON.parse(localStorage.getItem('subs')) || [];
+
+const colors = { "Подписка": "#f39c12" };
 
 function openModal(){document.getElementById('modalBg').style.display='block';}
 function closeModal(){document.getElementById('modalBg').style.display='none';}
 
-function renderSubscriptions(){
-  const list=document.getElementById('subsList'); 
-  list.innerHTML='';
+function renderSubs(){
+  const list = document.getElementById('subsList');
+  list.innerHTML = '';
+  let total = 0;
   const today = new Date();
-  subscriptions.forEach(s=>{
+
+  subscriptions.forEach((s,i)=>{
+    total += s.amount;
+
     const subDate = new Date(s.date);
-    const diffTime = subDate - today;
-    const diffDays = Math.ceil(diffTime / (1000*60*60*24));
+    const diffDays = Math.ceil((subDate - today)/(1000*60*60*24));
     const nextText = diffDays>=0 ? `Следующее списание через ${diffDays} дн.` : `Просрочено на ${-diffDays} дн.`;
-    
-    const div=document.createElement('div');
-    div.className='item';
-    div.innerHTML=`<div>${s.name} — ${s.amount} ₽</div><div>${nextText}</div>`;
-    list.appendChild(div);
+
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.style.backgroundColor = colors["Подписка"];
+    div.innerHTML = `<div>${s.name}</div><span>${s.amount} ₽<br>${nextText}</span>`;
+
+    const del = document.createElement('div');
+    del.className = 'delete';
+    del.innerText = 'Удалить';
+    del.onclick = ()=>deleteSubs(i);
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'wrapper';
+    wrapper.appendChild(del);
+    wrapper.appendChild(div);
+
+    list.appendChild(wrapper);
   });
+
+  document.getElementById('totalSubs').innerText = `Всего: ${total} ₽`;
 }
 
-function saveSubscription(){
-  const name=document.getElementById('subsName').value;
-  const amount=parseInt(document.getElementById('subsAmount').value);
-  const date=document.getElementById('subsDate').value;
-  if(!name||!amount||!date) return;
-  subscriptions.push({name,amount,date});
-  localStorage.setItem('subs',JSON.stringify(subscriptions));
+function saveSubs(){
+  const name = document.getElementById('subsName').value;
+  const amount = parseInt(document.getElementById('subsAmount').value);
+  const date = document.getElementById('subsDate').value;
+  if(!name || isNaN(amount) || !date) return;
+
+  subscriptions.push({name, amount, date});
+  localStorage.setItem('subs', JSON.stringify(subscriptions));
+
   document.getElementById('subsName').value='';
   document.getElementById('subsAmount').value='';
   document.getElementById('subsDate').value='';
   closeModal();
-  renderSubscriptions();
+  renderSubs();
 }
 
-renderSubscriptions();
+function deleteSubs(i){
+  subscriptions.splice(i,1);
+  localStorage.setItem('subs', JSON.stringify(subscriptions));
+  renderSubs();
+}
+
+renderSubs();
 </script>
 </body>
 </html>
