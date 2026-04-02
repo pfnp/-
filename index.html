@@ -12,7 +12,11 @@
 <body>
 
 <div class="header">Финансы</div>
-<div class="balance" id="balance">0 ₽</div>
+
+<div class="balance" id="totalBalance">Всего: 0 ₽</div>
+
+<div class="balance-type" id="typeBalance"></div>
+
 <div class="add-btn" onclick="openModal()">Добавить кошелёк</div>
 <div class="list" id="walletList"></div>
 
@@ -39,6 +43,13 @@
 <script>
 let wallets = JSON.parse(localStorage.getItem('wallets')) || [];
 
+const colors = {
+  "Карта": "#3498db",
+  "Наличные": "#2ecc71",
+  "Инвестиции": "#9b59b6",
+  "Долг": "#e74c3c"
+};
+
 function openModal(){document.getElementById('modalBg').style.display='block';}
 function closeModal(){document.getElementById('modalBg').style.display='none';}
 
@@ -46,12 +57,16 @@ function renderWallets(){
   const list = document.getElementById('walletList');
   list.innerHTML = '';
   let total = 0;
+  const typeTotals = { "Карта":0, "Наличные":0, "Инвестиции":0, "Долг":0 };
 
   wallets.forEach((w, i)=>{
     total += w.amount;
+    typeTotals[w.type] += w.amount;
 
     const div = document.createElement('div');
     div.className = 'item';
+    div.style.backgroundColor = colors[w.type];
+    div.style.color = "#fff";
     div.innerHTML = `<div>${w.name} (${w.type})</div><span>${w.amount} ₽</span>`;
 
     const del = document.createElement('div');
@@ -67,7 +82,15 @@ function renderWallets(){
     list.appendChild(wrapper);
   });
 
-  document.getElementById('balance').innerText = total + ' ₽';
+  document.getElementById('totalBalance').innerText = `Всего: ${total} ₽`;
+
+  const typeBalanceDiv = document.getElementById('typeBalance');
+  typeBalanceDiv.innerHTML = `
+    Карта: ${typeTotals["Карта"]} ₽ | 
+    Наличные: ${typeTotals["Наличные"]} ₽ | 
+    Инвестиции: ${typeTotals["Инвестиции"]} ₽ | 
+    Долг: ${typeTotals["Долг"]} ₽
+  `;
 }
 
 function saveWallet(){
